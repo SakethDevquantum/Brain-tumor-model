@@ -12,6 +12,9 @@ architecture: transformer architecture (Vision Transformer)
 images: MRI scanned gray-scale images of brain
 
 ## how to check:
+Make sure you have pytorch including torchvision is installed in your device or else use this command in cmd to install it for latest version in cpu:
+pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
+
 There are 2 files brain-tumor(full) and brain-tumour. If you want to validate the models' performace by testing with a single image to see what this model detects, you need to download the brain-tumour.py and brain-tumour.pth to your local device and make sure both of these files are in same directory. For retraining this model from scratch with your own datasets or want to see the full architecture of how I trained you just need to download the brain-tumour(full).py .
 
 To test the model with singular image, follow this procedure:
