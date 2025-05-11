@@ -1,4 +1,6 @@
-'''you can include custom datasets to check its working'''
+'''this file is for validation only, choose the image path from your local device and paste it in line
+63, download this file along with the pth file to validate this code
+'''
 
 import torch
 from torchvision import transforms, datasets
@@ -7,24 +9,10 @@ from tqdm import tqdm
 import torch.nn as nn
 from PIL import Image
 
-transform=transforms.Compose([
-    transforms.RandomApply([transforms.GaussianBlur(kernel_size=1)], p=0.3),
-    transforms.Resize((128, 128)),
-    transforms.Grayscale(num_output_channels=1),
-    transforms.RandomRotation(15),
-    transforms.ColorJitter(brightness=0.2, contrast=0.2),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=0.5, std=0.5)
-])
-
-train_data=datasets.ImageFolder(root='', transform=transform)#keep your datasets path in this root to train again
-test_data=datasets.ImageFolder(root='', transform=transform)
-
 device="cuda" if torch.cuda.is_available() else "cpu"
-num_classes=len(train_data.classes)
 
 class Vit(nn.Module):
-    def __init__(self, img_size=128, patch_size=8, depth=6, num_classes=len(train_data.classes),
+    def __init__(self, img_size=128, patch_size=8, depth=6, num_classes=4,
                 in_channels=1, dim=128, mlp=512, nheads=4, dropout=0.1):
         super().__init__()
         assert(img_size%patch_size==0), "image size should be divisible by patch size"
@@ -58,13 +46,10 @@ class Vit(nn.Module):
         return self.mlp_head(x)
 
 if __name__ == "__main__":
-
-    train_loader=torch.utils.data.DataLoader(train_data, shuffle=True, batch_size=16, pin_memory=True, num_workers=4)
-    test_Loader=torch.utils.data.DataLoader(test_data, shuffle=True, batch_size=16, pin_memory=True, num_workers=4)
     model=Vit().to(device)
     optimizer=torch.optim.Adam(params=model.parameters(), lr=0.0001, weight_decay=1e-4)
     criterion=nn.CrossEntropyLoss()
-    saving_path="brain-tumour.pth"#you can choose a new one to retrain again with datasets
+    saving_path="brain-tumour.pth"
     start_epoch=0
     epochs=100
     torch.cuda.empty_cache()
@@ -73,63 +58,33 @@ if __name__ == "__main__":
         model.load_state_dict(checkpoint["model"])
         optimizer.load_state_dict(checkpoint["optimizer"])
         start_epoch=checkpoint["epoch"]+1
-
-    print("training initiated")
-    for epoch in range(start_epoch, epochs):
-        model.train()
-        train_loss = 0
-        loop = tqdm(enumerate(train_loader), total=len(train_loader), desc=f'Epoch {epoch+1}/{epochs}', ncols=100, colour='blue')
-        for batch_idx, (images, labels) in loop:
-            images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            train_loss += loss.item()
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            torch.cuda.empty_cache()
-            loop.set_postfix({"loss": loss.item(), "batch": f"{batch_idx+1}/{len(train_loader)}"})
-        print(f"Epoch: {epoch+1} completed with a loss of {train_loss/len(train_loader):.4f}")
-        torch.save({
-            'epoch':epoch,
-            'optimizer':optimizer.state_dict(),
-            'model':model.state_dict()
-        }, saving_path)
-
-    print("Training done, time for testing")
-
-    img_path="" # paste image path from your local files to test the model with a custom image after training
-    transformen=transforms.Compose([
-        transforms.Resize((128,128)),
-        transforms.Grayscale(num_output_channels=1),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=0.5, std=0.5)
-    ])
-    img=Image.open(img_path)
-    img=transform(img)
-    img=img.unsqueeze(0)
-    img=img.to(device)
-
-    with torch.inference_mode():
-        output=model(img)
-        _,preds=torch.max(output,1)
-    print(f"disease: {train_data.classes[preds.item()]}")
-
-    correct = 0
-    total = 0
-    with torch.inference_mode():
+        print("pth successfully loaded")
         model.eval()
-        testing_loss = 0
-        loop = tqdm(enumerate(test_Loader), total=len(test_Loader), desc='Testing', ncols=100, colour='green')
-        for batch_idx, (images, labels) in loop:
-            images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            testing_loss += loss.item()
-            _, preds = torch.max(outputs, 1)
-            correct += (preds == labels).sum().item()
-            total += labels.size(0)
-            loop.set_postfix({"loss": loss.item(), "batch": f"{batch_idx+1}/{len(train_loader)}"})
+        img_path=""# paste image path from your local files to test the model with a custom image after training
+        if os.path.exists(img_path): 
+            transformen=transforms.Compose([
+                transforms.Resize((128,128)),
+                transforms.Grayscale(num_output_channels=1),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=0.5, std=0.5)
+            ])
+            img=Image.open(img_path)
+            img=transformen(img)
+            img=img.unsqueeze(0)
+            img=img.to(device)
 
-    print(f"Testing done\nAccuracy: {correct * 100 / total:.2f}%\nLoss: {testing_loss / len(test_Loader):.4f}")
-
+            with torch.inference_mode():
+                output=model(img)
+                _,preds=torch.max(output,1)
+            if(preds.item()==0):
+                print("This is glioma")
+            elif(preds.item()==1):
+                print("this is meningioma")
+            elif(preds.item()==3):
+                print("this is pituitary")
+            else:
+                print("there seems to be no tumor here")
+        else:
+            print("choose a valid image path")
+    else:
+        print("Error retrieving pth")
