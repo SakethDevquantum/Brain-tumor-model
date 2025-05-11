@@ -68,7 +68,7 @@ if __name__ == "__main__":
     epochs=100
     torch.cuda.empty_cache()
     if os.path.exists(saving_path):
-        checkpoint=torch.load(saving_path)
+        checkpoint=torch.load(saving_path, map_location=device)
         model.load_state_dict(checkpoint["model"])
         optimizer.load_state_dict(checkpoint["optimizer"])
         start_epoch=checkpoint["epoch"]+1
