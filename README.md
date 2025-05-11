@@ -9,3 +9,10 @@ optimizer: Adam
 loss function: cross entropy loss
 epochs: 100
 architecture: transformer architecture (Vision Transformer)
+
+## how to check:
+There are 2 files brain-tumor(full) and brain-tumour. If you want to validate the models' performace by testing with a single image to see what this model detects, you need to download the brain-tumour.py and brain-tumour.pth to your local device and make sure both of these files are in same directory. For retraining this model from scratch with your own datasets or want to see the full architecture of how I trained you just need to download the brain-tumour(full).py .
+
+To test the model with singular image, follow this procedure:
+->Go to your local files to the image you want to select, then right click the image, then click on "copy as path" or ctrl+Shift+c
+->Paste the path in line 63 of brain-tumour.py and make sure that your path is in quotes and replace single backslashes (\) with double backslashes (\\) or use a raw string like r"your_path_here" to avoid path issues on Windows.
