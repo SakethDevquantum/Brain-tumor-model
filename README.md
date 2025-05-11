@@ -19,4 +19,4 @@ There are 2 files brain-tumor(full) and brain-tumour. If you want to validate th
 
 To test the model with singular image, follow this procedure:
 ->Go to your local files to the image you want to select, then right click the image, then click on "copy as path" or ctrl+Shift+c
-->Paste the path in line 63 of brain-tumour.py and make sure that your path is in quotes and replace single backslashes (\) with double backslashes (\\) or use a raw string like r"your_path_here" to avoid path issues on Windows.
+->Paste the path in line 63 of brain-tumour.py which is "img_path" variable and make sure that your path is in quotes and replace single backslashes (\) with double backslashes (\\) or use a raw string like r"your_path_here" to avoid path issues on Windows.
